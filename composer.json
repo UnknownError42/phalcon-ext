@@ -1,0 +1,27 @@
+{
+  "name": "gmdance/phalcon-ext",
+  "description": "phalcon ext libs",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Geng Ming",
+      "email": "420642207@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-ctype": "*",
+    "ext-phalcon": ">=3.4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "PhalconExt\\": "src/"
+    },
+    "files": [
+      "src/Utils/helpers.php"
+    ]
+  }
+}
