@@ -3,6 +3,7 @@
 namespace PhalconExt\Services;
 
 use Phalcon\Config;
+use Phalcon\Mvc\Url;
 
 /**
  * Created by PhpStorm.
@@ -46,6 +47,15 @@ class DI
     {
         $di = \Phalcon\Di::getDefault();
         return $di->get('response');
+    }
+
+    /**
+     * @return Url
+     */
+    public static function getUrl()
+    {
+        $di = \Phalcon\Di::getDefault();
+        return $di->get('url');
     }
 
 
