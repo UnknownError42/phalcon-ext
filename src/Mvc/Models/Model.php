@@ -219,10 +219,12 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
      * @param bool $forUpdate
      * @return \Phalcon\Mvc\Model\Criteria
      */
-    protected static function buildSimpleQuery($data, $columns = null, $forUpdate = false)
+    protected static function buildSimpleQuery($data = null, $columns = null, $forUpdate = false)
     {
         $query = self::query();
-        if (!is_array($data)) {
+        if (empty($data)) {
+            //do nothing
+        } else if (!is_array($data)) {
             $id = $data;
             $query->inWhere('id', [$id]);
         } elseif (is_array($data)) {
