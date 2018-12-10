@@ -14,6 +14,7 @@
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-ctype": "*",
+    "ext-iconv": "*",
     "ext-phalcon": ">=3.4.0"
   },
   "autoload": {
@@ -23,5 +24,8 @@
     "files": [
       "src/Utils/helpers.php"
     ]
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.5"
   }
 }

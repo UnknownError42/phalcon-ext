@@ -31,7 +31,7 @@ class Response
     public static function success(array $data = [], string $message = 'ok')
     {
         $result = new Result(0, $message, $data);
-        $response = Di::getResponse();
+        $response = DI::getResponse();
         foreach (self::$headers as $key => $value) {
             $response->setHeader($key, $value);
         }
@@ -49,7 +49,7 @@ class Response
     public static function error(string $code, string $message, array $data = [])
     {
         $result = new Result($code, $message, $data);
-        $response = Di::getResponse();
+        $response = DI::getResponse();
         foreach (self::$headers as $key => $value) {
             $response->setHeader($key, $value);
         }
@@ -69,7 +69,7 @@ class Response
         self::setHeader('Accept-Ranges', 'bytes');
         self::setHeader('Accept-Length:', strlen($data));
         self::setHeader('Content-Disposition', 'attachment; filename=' . $filename);
-        $response = Di::getResponse();
+        $response = DI::getResponse();
         foreach (self::$headers as $key => $value) {
             $response->setHeader($key, $value);
         }

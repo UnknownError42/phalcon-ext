@@ -1,13 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: gengming
- * Date: 2018/12/8
- * Time: 9:53 PM
- */
 
 namespace PhalconExt\Mvc\Controllers;
 
+
+use Phalcon\Mvc\Model\Criteria;
+use PhalconExt\Mvc\Controllers\Grid\ButtonConfig;
+use PhalconExt\Mvc\Controllers\Grid\FieldConfig;
+use PhalconExt\Mvc\Controllers\Grid\RowMapConfig;
+use PhalconExt\Mvc\Models\Model;
+use PhalconExt\Services\Page;
+use PhalconExt\Services\Request;
+use PhalconExt\Services\Response;
+use PhalconExt\Utils\ArrayUtil;
 
 class GridController extends Controller
 {
@@ -19,16 +23,16 @@ class GridController extends Controller
     protected $viewColumns = [];
     protected $editColumns = [];
     /**
-     * @var GridFieldConfig[]
+     * @var FieldConfig[]
      */
     protected $fieldConfigs = [];
 
     /**
-     * @var GridButtonConfig[]
+     * @var ButtonConfig[]
      */
     protected $columnButtonConfigs = [];
     /**
-     * @var GridButtonConfig[]
+     * @var ButtonConfig[]
      */
     protected $rowButtonConfigs = [];
 
@@ -38,6 +42,9 @@ class GridController extends Controller
      * @var Model
      */
     protected $model;
+    /**
+     * @var Criteria
+     */
     protected $query;
     protected $defaultOrder;
     protected $pageSize = 10;
@@ -70,7 +77,7 @@ class GridController extends Controller
         foreach ([$this->showColumns, $this->editColumns, $this->searchColumns, $this->viewColumns] as $columns) {
             foreach ($columns as $column) {
                 $name = isset($columnLabels[snake_case($column)]) ? $columnLabels[snake_case($column)] : $column;
-                $this->fieldConfigs[$column] = isset($this->fieldConfigs[$column]) ? $this->fieldConfigs[$column] : new GridFieldConfig($name);
+                $this->fieldConfigs[$column] = isset($this->fieldConfigs[$column]) ? $this->fieldConfigs[$column] : new FieldConfig($name);
             }
         }
         $this->fieldConfigs = ArrayUtil::snakeCaseKeys($this->fieldConfigs);
@@ -79,12 +86,12 @@ class GridController extends Controller
     private function beforeBuildButtonConfigs()
     {
         $this->columnButtonConfigs = [
-            GridButtonConfig::create('搜索', 'search'),
+            ButtonConfig::create('搜索', 'search'),
         ];
         $this->rowButtonConfigs = [
-            GridButtonConfig::create('查看', 'view'),
-            GridButtonConfig::create('编辑', 'edit'),
-            GridButtonConfig::create('删除', 'remove'),
+            ButtonConfig::create('查看', 'view'),
+            ButtonConfig::create('编辑', 'edit'),
+            ButtonConfig::create('删除', 'remove'),
         ];
     }
 
@@ -127,7 +134,7 @@ class GridController extends Controller
                 if (isset($this->fieldConfigs[$fieldKey])) {
                     $fieldConfig = $this->fieldConfigs[$fieldKey];
                     switch ($fieldConfig->getType()) {
-                        case GridFieldConfig::TYPE_SELECT:
+                        case FieldConfig::TYPE_SELECT:
                             $value = ArrayUtil::get($fieldConfig->getListData(true), $value, '');
                             break;
                     }
@@ -143,7 +150,7 @@ class GridController extends Controller
 
     /**
      * @param $rows
-     * @return GridRowMapConfig[]
+     * @return RowMapConfig[]
      */
     protected function rowMaps(array $rows)
     {
@@ -171,7 +178,7 @@ class GridController extends Controller
      */
     protected function updateQuery(Criteria $query)
     {
-        $search = RequestService::post('search');
+        $search = Request::post('search');
         $searchBasic = isset($search['basic']) ? $search['basic'] : 'basic';
         foreach ($searchBasic as $key => $value) {
             if ($value === '') {
@@ -179,7 +186,7 @@ class GridController extends Controller
             }
             $snakeKey = snake_case($key);
             $config = $this->fieldConfigs[$snakeKey];
-            if ($config->getType() == GridFieldConfig::TYPE_DATETIME) {
+            if ($config->getType() == FieldConfig::TYPE_DATETIME) {
                 if (!empty($value[0])) {
                     $startTime = date('Y-m-d H:i:s', strtotime($value[0]));
                     $query->andWhere("{$this->db->escapeString($startTime)} <= {$this->modelClass}.{$snakeKey}");
@@ -192,21 +199,21 @@ class GridController extends Controller
             }
             $operator = $config->getSearchOperator();
             switch ($config->getSearchOperator()) {
-                case GridFieldConfig::SEARCH_OPERATOR_LIKE:
+                case FieldConfig::SEARCH_OPERATOR_LIKE:
                     $value = "%{$value}%";
                     break;
-                case GridFieldConfig::SEARCH_OPERATOR_LIKE_LEFT:
+                case FieldConfig::SEARCH_OPERATOR_LIKE_LEFT:
                     $operator = 'like';
                     $value = "{$value}%";
                     break;
-                case GridFieldConfig::SEARCH_OPERATOR_LIKE_RIGHT:
+                case FieldConfig::SEARCH_OPERATOR_LIKE_RIGHT:
                     $operator = 'like';
                     $value = "%{$value}";
                     break;
-                case GridFieldConfig::SEARCH_OPERATOR_IN:
+                case FieldConfig::SEARCH_OPERATOR_IN:
                     $value = is_array($value) ? $value : [$value];
                     break;
-                case GridFieldConfig::SEARCH_OPERATOR_EQUAL:
+                case FieldConfig::SEARCH_OPERATOR_EQUAL:
                     break;
             }
             $value = $this->db->escapeString($value);
@@ -236,17 +243,26 @@ class GridController extends Controller
             'searchColumns' => ArrayUtil::cameCaseValues($this->searchColumns),
             'orderColumns' => ArrayUtil::cameCaseValues($this->orderColumns),
             'fieldConfigs' => array_map(function ($var) {
+                /**
+                 * @var $var FieldConfig
+                 */
                 return $var->toArray();
             }, $this->fieldConfigs),
             'rowButtonConfigs' => array_map(function ($var) {
+                /**
+                 * @var $var ButtonConfig
+                 */
                 return $var->toArray();
             }, $this->rowButtonConfigs),
             'columnButtonConfigs' => array_map(function ($var) {
+                /**
+                 * @var $var ButtonConfig
+                 */
                 return $var->toArray();
             }, $this->columnButtonConfigs),
             'actionsWidth' => $this->actionsWidth,
         ];
-        return ResponseService::success($data);
+        return Response::success($data);
     }
 
     /**
@@ -255,11 +271,11 @@ class GridController extends Controller
     public function dataAction()
     {
         $this->updateQuery($this->query);
-        $page = RequestService::post('page', 1);
-        $data = PageService::result($this->query, $this->pageSize, $page, function ($rows) {
+        $page = Request::post('page', 1);
+        $data = Page::result($this->query, $this->pageSize, $page, function ($rows) {
             return $this->formatRows($rows);
         });
-        return ResponseService::success($data);
+        return Response::success($data);
     }
 
 
@@ -273,6 +289,9 @@ class GridController extends Controller
         $rows = $this->query->execute()->toArray();
         $data = $this->formatRows($rows);
         $headers = [];
+        /**
+         * @var $fieldConfigs FieldConfig[]
+         */
         $fieldConfigs = ArrayUtil::snakeCaseKeys($this->fieldConfigs);
         $showColumns = ArrayUtil::snakeCaseValues($this->showColumns);
         foreach ($showColumns as $showColumn) {
@@ -290,76 +309,72 @@ class GridController extends Controller
             $raw .= implode("\t", $items) . "\n";
         }
         $raw = iconv('UTF-8', 'GB18030', $raw);
-        return ResponseService::success([
+        return Response::success([
             'download' => base64_encode($raw),
         ]);
     }
 
     /**
      * @return mixed
+     * @throws \PhalconExt\Exceptions\ModelNotFoundException
      */
     public function formAction()
     {
-        $id = RequestService::post('id');
-        $model = $this->model->query()
-            ->inWhere('id', [$id])
-            ->execute()
-            ->getFirst()->toArray();
+        $id = Request::post('id');
+        $model = $this->model::findOneOrFail($id)->toArray();
         $model = $this->buildRow($model, 'form');
         $data = [
             'id' => $id,
-            GridFieldConfig::SCOPE_BASIC => [],
-            GridFieldConfig::SCOPE_EXTRA => [],
+            FieldConfig::SCOPE_BASIC => [],
+            FieldConfig::SCOPE_EXTRA => [],
         ];
         foreach ($this->editColumns as $column) {
             $config = $this->fieldConfigs[$column];
-            if ($config->getScope() == GridFieldConfig::SCOPE_BASIC) {
+            if ($config->getScope() == FieldConfig::SCOPE_BASIC) {
                 $data[$config->getScope()][$column] = $model[snake_case($column)];
             }
         }
         foreach ($data as $k => $v) {
             $data[$k] = empty($v) ? new \stdClass() : $v;
         }
-        return ResponseService::success($data);
+        return Response::success($data);
     }
 
     /**
      * view页面数据
+     * @throws \PhalconExt\Exceptions\ModelNotFoundException
      */
     public function viewAction()
     {
-        $id = RequestService::post('id');
-        $model = $this->model->query()
-            ->inWhere('id', [$id])
-            ->execute()
-            ->getFirst()->toArray();
+        $id = Request::post('id');
+        $model = $this->model::findOneOrFail($id)->toArray();
         $model = $this->buildRow($model, 'view');
         $data = [
             'id' => $id,
-            GridFieldConfig::SCOPE_BASIC => [],
-            GridFieldConfig::SCOPE_EXTRA => [],
+            FieldConfig::SCOPE_BASIC => [],
+            FieldConfig::SCOPE_EXTRA => [],
         ];
         foreach ($this->viewColumns as $column) {
             $config = $this->fieldConfigs[$column];
-            if ($config->getScope() == GridFieldConfig::SCOPE_BASIC) {
+            if ($config->getScope() == FieldConfig::SCOPE_BASIC) {
                 $data[$config->getScope()][$column] = $model[snake_case($column)];
             }
         }
         foreach ($data as $k => $v) {
             $data[$k] = empty($v) ? new \stdClass() : $v;
         }
-        return ResponseService::success($data);
+        return Response::success($data);
     }
 
     /**
      * @return \Phalcon\Http\Response
-     * @throws \Aisourcing\Library\Exceptions\ModelNotFoundException
-     * @throws \Aisourcing\Library\Exceptions\ModelNotSaveException
+     * @throws \PhalconExt\Exceptions\ModelNotFoundException
+     * @throws \PhalconExt\Exceptions\ModelNotSaveException
      */
     public function saveAction()
     {
-        $id = RequestService::post('id');
-        $data = RequestService::post('basic');
+        $id = Request::post('id');
+        $data = Request::post('basic');
         if ($id) {
             $model = $this->model::findOneOrFail($id);
             foreach ($data as $key => $value) {
@@ -367,23 +382,24 @@ class GridController extends Controller
             }
             $model->updateOrFail();
         } else {
+            /**
+             * @var $model Model
+             */
             $model = new $this->modelClass;
             foreach ($data as $key => $value) {
                 $model[snake_case($key)] = $value;
             }
             $model->createOrFail();
         }
-        return ResponseService::success();
+        return Response::success();
     }
+
 
     /**
      * @return \Phalcon\Http\Response
      */
     public function removeAction()
     {
-        return
-            $id = RequestService::post('id');
-        $this->model->query()->inWhere('id', [$id])->execute()->getFirst()->delete();
-        return ResponseService::success();
+        return Response::success();
     }
 }

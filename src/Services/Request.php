@@ -11,7 +11,7 @@ class Request
     public static function get(string $key = null, $default = null)
     {
         if (self::$getData === null) {
-            $request = Di::getRequest();
+            $request = DI::getRequest();
             $data = $request->getJsonRawBody(true);
             $data = $data ?: [];
             $data += $request->getPost();
@@ -25,7 +25,7 @@ class Request
     public static function post(string $key = null, $default = null)
     {
         if (self::$postData === null) {
-            $request = Di::getRequest();
+            $request = DI::getRequest();
             self::$postData = $request->getJsonRawBody(true);
             if (empty(self::$postData)) {
                 self::$postData = $request->getPost();

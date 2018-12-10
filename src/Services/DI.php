@@ -10,7 +10,7 @@ use Phalcon\Config;
  * Date: 2018/12/10
  * Time: 11:34 AM
  */
-class Di
+class DI
 {
     /**
      * @return Config

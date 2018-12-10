@@ -5,6 +5,8 @@ namespace PhalconExt\Mvc\Models;
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
+use PhalconExt\Exceptions\ModelNotFoundException;
+use PhalconExt\Exceptions\ModelNotSaveException;
 
 /**
  * Class Model
@@ -107,7 +109,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
     {
         $model = self::findOne($data, $columns, $forUpdate);
         if (!$model) {
-            throw new ModelNotFoundException(self::class, '出错啦，请稍后再尝试');
+            throw new ModelNotFoundException(self::class . ' Not Found');
         }
         return $model;
     }
@@ -165,7 +167,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
             foreach ($messages as $message) {
                 $outputMessages[] = $message->getMessage();
             }
-            throw new ModelNotSaveException($this, implode("\n", $outputMessages), ErrorCode::ERR_DB_SAVE, $this->getMessages());
+            throw new ModelNotSaveException('Model Save Exception:' . implode("\n", $outputMessages));
         }
         return $result;
     }
@@ -185,7 +187,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
             foreach ($messages as $message) {
                 $outputMessages[] = $message->getMessage();
             }
-            throw new ModelNotSaveException($this, implode("\n", $outputMessages), ErrorCode::ERR_DB_SAVE, $this->getMessages());
+            throw new ModelNotSaveException('Model Save Exception:' . implode("\n", $outputMessages));
         }
         return $result;
     }
@@ -205,7 +207,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
             foreach ($messages as $message) {
                 $outputMessages[] = $message->getMessage();
             }
-            throw new ModelNotSaveException($this, implode("\n", $outputMessages), ErrorCode::ERR_DB_SAVE, $this->getMessages());
+            throw new ModelNotSaveException('Model Save Exception:' . implode("\n", $outputMessages));
         }
         return $result;
     }
