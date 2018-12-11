@@ -89,7 +89,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
      * @param bool $forUpdate
      * @return bool|\Phalcon\Mvc\Model\Row|$this
      */
-    public static function findOne($data, $columns = null, $forUpdate = false)
+    public static function findOne($data = null, $columns = null, $forUpdate = false)
     {
         $model = null;
         $query = self::buildSimpleQuery($data, $columns, $forUpdate);
@@ -120,7 +120,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
      * @param bool $forUpdate
      * @return null|\Phalcon\Mvc\Model\ResultsetInterface
      */
-    public static function findAll($data, $columns = null, $forUpdate = false)
+    public static function findAll($data = null, $columns = null, $forUpdate = false)
     {
         $result = null;
         $query = self::buildSimpleQuery($data, $columns, $forUpdate);
