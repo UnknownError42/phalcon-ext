@@ -12,13 +12,13 @@ use Phalcon\Text;
 class ModelGenerator
 {
     //配置数据
-    public $prefix;
-    public $namespace;
-    public $modelsDir;
+    protected $prefix;
+    protected $namespace;
+    protected $modelsDir;
     /**
      * @var $db Db\AdapterInterface
      */
-    public $db;
+    protected $db;
 
     /**
      * ModelGenerator constructor.
