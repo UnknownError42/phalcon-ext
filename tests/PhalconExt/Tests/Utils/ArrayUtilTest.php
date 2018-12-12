@@ -6,7 +6,7 @@
  * Time: 4:20 PM
  */
 
-namespace PhalconExt\Tests;
+namespace PhalconExt\Tests\Utils;
 
 use PhalconExt\Utils\ArrayUtil;
 use PHPUnit\Framework\TestCase;

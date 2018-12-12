@@ -6,7 +6,7 @@
  * Time: 3:38 PM
  */
 
-namespace PhalconExt\Tests;
+namespace PhalconExt\Tests\Utils;
 
 
 class HelperTest extends \PHPUnit\Framework\TestCase
