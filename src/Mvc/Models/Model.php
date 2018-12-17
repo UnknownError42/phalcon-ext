@@ -222,7 +222,7 @@ abstract class Model extends \Phalcon\Mvc\Model implements IteratorAggregate, Ar
     protected static function buildSimpleQuery($data = null, $columns = null, $forUpdate = false)
     {
         $query = self::query();
-        if (empty($data)) {
+        if ($data === null) {
             //do nothing
         } else if (!is_array($data)) {
             $id = $data;
